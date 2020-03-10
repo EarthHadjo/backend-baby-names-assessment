@@ -45,8 +45,34 @@ def extract_names(filename):
     with the year string followed by the name-rank strings in alphabetical order.
     ['2006', 'Aaliyah 91', Aaron 57', 'Abagail 895', ' ...]
     """
+    year = r'Popularity\sin\s(\d\d\d\d)'
     names = []
-    # +++your code here+++
+
+    with open(filename) as f:
+       text = f.read()
+
+    year_match = re.search(r'Popularity\sin\s(\d\d\d\d)', text)
+    if not year_match:
+        sys.stderr.write('Couldn\'t find the year!\n')
+        sys.exit(1)
+    year = year_match.group(1)
+    names.append(year)
+
+    tuples = re.findall(r'<td>(\d+)</td><td>(\w+)</td><td>(\w+)</td>', text)
+
+    names_to_rank = {}
+    for rank_tuple in tuples:
+        (rank, boyname, girlname) = rank_tuple
+        if boyname not in names_to_rank:
+            names_to_rank[boyname] = rank
+        if girlname not in names_to_rank:
+            names_to_rank[girlname] = rank
+
+    sorted_names = sorted(names_to_rank.keys())
+
+    for name in sorted_names:
+        names.append(name + " " + names_to_rank[name])
+
     return names
 
 
@@ -81,8 +107,15 @@ def main(args):
     # Use the create_summary flag to decide whether to print the list,
     # or to write the list to a summary file e.g. `baby1990.html.summary`
 
-    # +++your code here+++
-
+    for filename in file_list:
+        print('working on file: {}'. format(filename))
+        names = extract_names(filename)
+        text = '\n'.join(names)
+        if create_summary:
+            with open(filename + '.summary', 'w') as outf:
+                outf.write(text + '\n')
+        else:
+            print(text)
 
 if __name__ == '__main__':
     main(sys.argv[1:])
